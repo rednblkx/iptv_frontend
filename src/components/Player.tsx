@@ -36,7 +36,7 @@ export function VideoJS(props: any) {
       // };
       const player = videojs(
         videoElement,
-        { autoplay: true, controls: true, responsive: true, fluid: true },
+        { autoplay: true, controls: true, responsive: true, fluid: true, nativeControlsForTouch: true },
         () => {
           videojs.log("player is ready");
           onReady && onReady(player);
