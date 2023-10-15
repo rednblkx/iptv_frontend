@@ -1,4 +1,6 @@
+import { SearchIcon } from "@chakra-ui/icons";
 import {
+  AbsoluteCenter,
   Alert,
   AlertDescription,
   AlertIcon,
@@ -7,10 +9,14 @@ import {
   Button,
   Card,
   CardBody,
+  Center,
   Flex,
   Heading,
   HStack,
   Image,
+  Input,
+  InputGroup,
+  InputLeftElement,
   SimpleGrid,
   Skeleton,
   Stack,
@@ -19,9 +25,11 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { Key } from "react";
-import { useInfiniteQuery } from "react-query";
+import { useInfiniteQuery, useQuery } from "react-query";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { useDebounce } from "use-debounce";
 import getVodShows from "../../apis/GetVodShows";
+import searchShow from "../../apis/SearchShow";
 
 export default function VodShowsList() {
   let { provider } = useParams();
@@ -49,8 +57,21 @@ export default function VodShowsList() {
     },
     refetchOnWindowFocus: false,
   });
+  const [value, setValue] = React.useState("");
+  const handleChange = (event: {
+    target: { value: React.SetStateAction<string> };
+  }) => setValue(event.target.value);
+  const [finalValue] = useDebounce(value, 1000);
 
-  const [isLoaded, setIsLoaded] = React.useState(false);
+  const {
+    data: dataSearch,
+    isLoading: isSearchLoading,
+    isFetched: isSearchFetched,
+  } = useQuery(
+    `searchShow/${finalValue}`,
+    () => searchShow(provider || null, value),
+    { enabled: Boolean(finalValue) }
+  );
 
   const location = useLocation();
 
@@ -104,46 +125,96 @@ export default function VodShowsList() {
   }
   return (
     <>
+      <Box marginBottom="1.5rem">
+        <Center>
+          <InputGroup maxWidth="50%">
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              value={value}
+              onChange={handleChange}
+              type="search"
+              placeholder="Search a show"
+            />
+          </InputGroup>
+        </Center>
+      </Box>
       <SimpleGrid
         spacing={[2, 4]}
-        minChildWidth={['120px', '200px', '230px']}
+        minChildWidth={["120px", "200px", "230px"]}
         mx="20px"
         alignItems="start"
         // pb="50px"
       >
-        {isSuccess &&
-          data.pages.map((page, i) =>
-            page.data.data.map((item: any, i: Key | null | undefined) => (
-              <Card
-                maxW="sm"
-                key={i}
-                as={Link}
-                to={`/vod/${provider}/${item.id}`}
-                state={{ ...location.state, [item.id]: item.name }}
-              >
-                <CardBody>
-                  <Image
-                    src={
-                      item.img ||
-                      "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
-                    }
-                    width="100%"
-                    height={item.img ? "auto" : "90px"}
-                    objectFit="cover"
-                    alt={item.name}
-                    borderRadius="lg"
-                  />
-                  <Flex mt="6" flexDir="column">
-                    <Heading size="md">{item.name}</Heading>
-                    <Text>
-                      {item.date &&
-                        new Date(item.date as Date).toLocaleString()}
-                    </Text>
-                  </Flex>
-                </CardBody>
-              </Card>
-            ))
-          )}
+        {isSuccess && !Boolean(finalValue)
+          ? data.pages.map((page, i) =>
+              page.data.data.map((item: any, i: Key | null | undefined) => (
+                <Card
+                  maxW="sm"
+                  key={i}
+                  as={Link}
+                  to={`/vod/${provider}/${item.id}`}
+                  state={{ ...location.state, [item.id]: item.name }}
+                >
+                  <CardBody>
+                    <Image
+                      src={
+                        item.img ||
+                        "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
+                      }
+                      width="100%"
+                      height={item.img ? "auto" : "90px"}
+                      objectFit="cover"
+                      alt={item.name}
+                      borderRadius="lg"
+                    />
+                    <Flex mt="6" flexDir="column">
+                      <Heading size="md">{item.name}</Heading>
+                      <Text>
+                        {item.date &&
+                          new Date(item.date as Date).toLocaleString()}
+                      </Text>
+                    </Flex>
+                  </CardBody>
+                </Card>
+              ))
+            )
+          : dataSearch?.data.data.map(
+              (
+                item: { id: any; name: string; img: any; date: Date },
+                i: React.Key | null | undefined
+              ) => (
+                <Card
+                  maxW="sm"
+                  key={i}
+                  as={Link}
+                  to={`/vod/${provider}/${item.id}`}
+                  state={{ ...location.state, [item.id]: item.name }}
+                >
+                  <CardBody>
+                    <Image
+                      src={
+                        item.img ||
+                        "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
+                      }
+                      width="100%"
+                      height={item.img ? "auto" : "90px"}
+                      objectFit="cover"
+                      alt={item.name}
+                      borderRadius="lg"
+                    />
+                    <Flex mt="6" flexDir="column">
+                      <Heading size="md">{item.name}</Heading>
+                      <Text>
+                        {item.date &&
+                          new Date(item.date as Date).toLocaleString()}
+                      </Text>
+                    </Flex>
+                  </CardBody>
+                </Card>
+              )
+            )}
       </SimpleGrid>
       <Flex pb="5rem" pt="2rem" justifyContent="center">
         <Button
