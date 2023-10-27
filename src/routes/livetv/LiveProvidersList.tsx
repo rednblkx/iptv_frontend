@@ -50,10 +50,9 @@ export default function ProvidersList() {
     <>
       <Flex
         gap="20px"
-        mx="20px"
         pb="50px"
         wrap="wrap"
-        justifyContent="space-around"
+        justifyContent="space-evenly"
       >
         {status == "success" &&
           data.data.live.map((item: any, i: Key | null | undefined) => (
@@ -69,19 +68,21 @@ export default function ProvidersList() {
               }}
               // minWidth="100px"
               maxW={["150px", "190px", "220px"]}
+              maxH="100px"
             >
               <CardBody
                 display="flex"
                 flexDirection="column"
                 justifyContent="space-evenly"
+                height="100%"
               >
                 <Image
                   src={
                     item.logo ||
                     "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
                   }
-                  width="100%"
-                  maxH="90px"
+                  width="auto"
+                  h="100%"
                   objectFit="contain"
                   alt={item.id}
                   borderRadius="lg"

@@ -64,7 +64,7 @@ export default function VodShowsList() {
     setSearch(options.data.searchEnabled);
   }, []);
 
-  const textColorMode = useColorModeValue("black", "white");
+  const brightnessMode = useColorModeValue("brightness(100%)", "brightness(80%)");
 
   const handleChange = (event: {
     target: { value: React.SetStateAction<string> };
@@ -82,6 +82,7 @@ export default function VodShowsList() {
       enabled: Boolean(finalValue),
       refetchOnMount: false,
       refetchOnWindowFocus: false,
+      staleTime: 600000
     }
   );
 
@@ -185,6 +186,7 @@ export default function VodShowsList() {
                       position={["relative", "inherit"]}
                       maxH="100px"
                       w="100%"
+                      filter={brightnessMode}
                     />
                     <Flex
                       // mt="6"
@@ -196,18 +198,18 @@ export default function VodShowsList() {
                       pos={["absolute", "inherit"]}
                       w="100%"
                       h="100%"
-                      backgroundColor="#b0b0b050"
+                      backgroundColor="#00000075"
                       borderRadius="md"
                       borderTopRadius={["md", "0px"]}
                     >
                       <Heading
                         size="md"
                         textAlign="center"
-                        color={["black", textColorMode]}
+                        color="white"
                       >
                         {item.name}
                       </Heading>
-                      <Text textAlign="center" color={["black", textColorMode]}>
+                      <Text textAlign="center" color="white">
                         {item.date &&
                           new Date(item.date as Date).toLocaleString()}
                       </Text>
@@ -251,6 +253,7 @@ export default function VodShowsList() {
                       position={["relative", "inherit"]}
                       maxH="100px"
                       w="100%"
+                      filter={brightnessMode}
                     />
                     <Flex
                       // mt="6"
@@ -262,18 +265,18 @@ export default function VodShowsList() {
                       pos={["absolute", "inherit"]}
                       w="100%"
                       h="100%"
-                      backgroundColor="#b0b0b040"
+                      backgroundColor="#00000075"
                       borderRadius="md"
                       borderTopRadius={["md", "0px"]}
                     >
                       <Heading
                         size="md"
                         textAlign="center"
-                        color={["black", textColorMode]}
+                        color="white"
                       >
                         {item.name}
                       </Heading>
-                      <Text textAlign="center" color={["black", textColorMode]}>
+                      <Text textAlign="center" color="white">
                         {item.date &&
                           new Date(item.date as Date).toLocaleString()}
                       </Text>
