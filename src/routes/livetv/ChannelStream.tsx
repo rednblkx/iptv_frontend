@@ -1,28 +1,18 @@
-import { ArrowBackIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertDescription,
   AlertIcon,
   AlertTitle,
   Box,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
   Card,
   CardBody,
   Link as LinkText,
-  Heading,
-  Text,
   Code,
-  Button,
-  Flex,
   Skeleton,
-  SkeletonCircle,
-  SkeletonText,
 } from "@chakra-ui/react";
 import React from "react";
 import { useQuery } from "react-query";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import videojs from "video.js";
 import getChannelStream from "../../apis/GetChannelStream";
 import VideoJS from "../../components/Player.jsx";
@@ -44,9 +34,9 @@ export default function ChannelStream(props) {
     isFetchedAfterMount,
     isLoading,
   } = useQuery(
-    "getStream",
+    `getStream/${provider}/${channel}`,
     async () => getChannelStream(provider || null, channel || null),
-    { retry: 2, refetchOnMount: true, refetchOnWindowFocus: false }
+    { retry: 2, refetchOnMount: true, refetchOnWindowFocus: false, staleTime: 7200000 }
   );
 
   const playerRef = React.useRef(null);
@@ -104,7 +94,7 @@ export default function ChannelStream(props) {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
+  if ((isLoading && !isFetchedAfterMount) || !isFetched)
     return (
         <Box p="6" bg="white" w="100%">
           <Skeleton height="260px" borderRadius="4"/>
@@ -112,16 +102,16 @@ export default function ChannelStream(props) {
     );
 
   return (
-    <>
+    <Box mb="2">
       {isSuccess && (
-        <Card mb="2">
-          <CardBody>
+        <Card mb="2" mx="2">
+          <CardBody p="1">
             <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
           </CardBody>
         </Card>
       )}
       {isSuccess && data?.data?.stream && (
-        <Card mb="2">
+        <Card mb="2" mx="2">
           <CardBody>
             <LinkText href={data?.data.stream} isExternal>
               {data?.data.stream}
@@ -130,12 +120,12 @@ export default function ChannelStream(props) {
         </Card>
       )}
       {isSuccess && data?.data?.drm && data?.data?.drm.url && (
-        <Card>
+        <Card mx="2" mb="2">
           <CardBody>
             <Code>{data?.data.drm.url}</Code>
           </CardBody>
         </Card>
       )}
-    </>
+    </Box>
   );
 }

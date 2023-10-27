@@ -13,6 +13,8 @@
     "@chakra-ui/react": "^2.5.1",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
+    "@types/videojs-contrib-quality-levels": "^2.0.3",
+    "@videojs/http-streaming": "^2.16.2",
     "axios": "^1.3.4",
     "framer-motion": "^10.2.4",
     "react": "^18.2.0",
@@ -21,7 +23,8 @@
     "react-router-dom": "^6.9.0",
     "use-debounce": "^9.0.4",
     "video.js": "^8.0.4",
-    "videojs-contrib-eme": "^3.11.1"
+    "videojs-contrib-eme": "^3.11.1",
+    "videojs-contrib-quality-levels": "^4.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.27",

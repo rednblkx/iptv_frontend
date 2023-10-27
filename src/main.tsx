@@ -22,6 +22,8 @@ import ChannelStream from "./routes/livetv/ChannelStream";
 import VodShowsList from "./routes/vod/VodShowsList";
 import VodEpisodesList from "./routes/vod/VodEpisodesList";
 import VodStream from "./routes/vod/VodStream";
+import axios from "axios";
+import getModuleInfo from "./apis/GetModuleInfo";
 
 const config: ThemeConfig = {
   initialColorMode: "dark",
@@ -78,6 +80,10 @@ let router = createBrowserRouter([
       },
       {
         path: "vod/:provider",
+        loader: async ({ params }) => {
+          let module_options = await getModuleInfo(params.provider!)
+          return module_options;
+        },
         element: <VodShowsList />,
       },
       {

@@ -5,13 +5,12 @@ import {
   Flex,
   Heading,
   Image,
-  SimpleGrid,
-  Skeleton,
 } from "@chakra-ui/react";
 import { Key } from "react";
 import { useQuery } from "react-query";
 import { Link, useLocation } from "react-router-dom";
 import getProviders from "../../apis/GetProviders";
+import Skeleton from "../../components/Skeleton";
 
 export default function ProvidersList() {
   const location = useLocation()
@@ -23,6 +22,7 @@ export default function ProvidersList() {
       refetchOnMount: true,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      staleTime: 43200000
     }
   );
 
@@ -43,26 +43,17 @@ export default function ProvidersList() {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
-    return (
-      <Flex wrap="wrap" justify="center" gap="4">
-        {Array.from({ length: 8 }, (_: any, i: number) => i + 1).map((_, i) => (
-          <Skeleton maxW="218px" h="218px" m="0" key={i} borderRadius="4">
-            <Card maxW="sm">
-              <CardBody w="218px" h="219px"></CardBody>
-            </Card>
-          </Skeleton>
-        ))}
-      </Flex>
-    );
+  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+    return (<Skeleton/> );
 
   return (
     <>
-      <SimpleGrid
-        spacing={4}
-        templateColumns="repeat(auto-fill, minmax(200px, 1fr))"
+      <Flex
+        gap="20px"
         mx="20px"
         pb="50px"
+        wrap="wrap"
+        justifyContent="space-around"
       >
         {status == "success" &&
           data.data.live.map((item: any, i: Key | null | undefined) => (
@@ -76,6 +67,8 @@ export default function ProvidersList() {
                   .map((a: string) => a[0].toUpperCase() + a.substring(1))
                   .join(" "),
               }}
+              // minWidth="100px"
+              maxW={["150px", "190px", "220px"]}
             >
               <CardBody
                 display="flex"
@@ -102,7 +95,7 @@ export default function ProvidersList() {
               </CardBody>
             </Card>
           ))}
-      </SimpleGrid>
+      </Flex>
     </>
   );
 }

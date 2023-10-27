@@ -6,10 +6,10 @@ import {
   Box,
   Card,
   CardBody,
-  Flex,
+  Code,
   Heading,
+  Link,
   Skeleton,
-  Text,
 } from "@chakra-ui/react";
 import React from "react";
 import { useQuery } from "react-query";
@@ -33,28 +33,27 @@ export default function VodStream() {
     isFetchedAfterMount,
     isLoading,
   } = useQuery(
-    "getEpisodeStream",
+    `getEpisodeStream/${provider}/${show}/${epid}`,
     async () => getVodStream(provider || null, show || null, epid || null),
     {
       retry: 2,
       refetchOnMount: true,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      staleTime: 7200000
     }
   );
 
 
   const videoJsOptions = {
     src: data?.data?.stream.includes(".m3u8")
-      ? `${
-          import.meta.env.VITE_API_BASE_URL
-        }/${provider}/vod/${show}/${epid}/index.m3u8?cf_bypass=1`
+      ? data?.data?.stream
       : `${import.meta.env.VITE_API_BASE_URL}/cors/${data?.data?.stream}`,
     keySystems: {
       "com.widevine.alpha": `${import.meta.env.VITE_API_BASE_URL}/cors/${
         data?.data?.drm?.url
       }`,
-    },
+    }
   };
 
   const handlePlayerReady = (player: any) => {
@@ -91,7 +90,7 @@ export default function VodStream() {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
+  if ((isLoading && !isFetchedAfterMount) || !isFetched)
     return (
         <Box p="6" bg="white" w="100%">
           <Skeleton height="260px" borderRadius="4"/>
@@ -100,45 +99,43 @@ export default function VodStream() {
 
   if (data && data?.data?.length == 0) {
     return (
-      <>
-        <Box
-          w="100%"
-          h="100%"
-          display="flex"
-          flexDirection="column"
-          justifyContent="center"
-          alignItems="center"
-        >
-          <Heading color="rgba(255,255,255, 0.7)">
-            No Episodes available!
-          </Heading>
-        </Box>
-      </>
+      <Box
+        w="100%"
+        h="100%"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Heading color="rgba(255,255,255, 0.7)">
+          No Episodes available!
+        </Heading>
+      </Box>
     );
   }
   return (
-    <>
+    <Box pb="5">
       {isSuccess && (
-        <Card mb="2">
-          <CardBody>
+        <Card mb="2" mx="2">
+          <CardBody p="1">
             <VideoJS options={videoJsOptions} onReady={handlePlayerReady} />
           </CardBody>
         </Card>
       )}
       {isSuccess && data?.data?.stream && (
-        <Card>
+        <Card mx="2">
           <CardBody>
-            <Text>{data?.data.stream}</Text>
+            <Link isExternal href={data?.data.stream}>{data?.data.stream}</Link>
           </CardBody>
         </Card>
       )}
       {isSuccess && data?.data?.drm && (
-        <Card>
+        <Card mx="2">
           <CardBody>
-            <Text>{data?.data.drm.url}</Text>
+            <Code>{data?.data.drm.url}</Code>
           </CardBody>
         </Card>
       )}
-    </>
+    </Box>
   );
 }

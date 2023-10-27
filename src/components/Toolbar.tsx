@@ -42,7 +42,7 @@ export default function Toolbar() {
       flexShrink="0"
       zIndex={999}
       h="var(--toolbar-size)"
-      bgColor={colorMode == "dark" ? "gray.900" : "gray.50"}
+      bgColor={colorMode == "dark" ? "#332f2f" : "#cec9ad"}
       borderRadius="2px"
       alignContent="center"
       alignItems="center"

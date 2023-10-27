@@ -10,8 +10,6 @@ import {
   Flex,
   Heading,
   Image,
-  SimpleGrid,
-  Skeleton,
   Stack,
   Text,
 } from "@chakra-ui/react";
@@ -19,6 +17,7 @@ import { Key } from "react";
 import { useInfiniteQuery } from "react-query";
 import { Link, useLocation, useParams } from "react-router-dom";
 import getEpisodesList from "../../apis/GetEpisodesList";
+import Skeleton from "../../components/Skeleton";
 
 export default function VodEpisodesList() {
   let location = useLocation();
@@ -37,7 +36,7 @@ export default function VodEpisodesList() {
     isFetched,
     isLoading,
   } = useInfiniteQuery({
-    queryKey: "getEpisodesList",
+    queryKey: `getEpisodesList/${provider}/${show}`,
     queryFn: async ({ pageParam }) =>
       getEpisodesList(provider || null, show || null, pageParam),
 
@@ -48,6 +47,7 @@ export default function VodEpisodesList() {
         : null;
     },
     refetchOnWindowFocus: false,
+    staleTime: 600000,
   });
 
   if (isError && !isFetching) {
@@ -71,18 +71,7 @@ export default function VodEpisodesList() {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
-    return (
-      <Flex wrap="wrap" justify="center" gap="4">
-        {Array.from({ length: 8 }, (_: any, i: number) => i + 1).map((_, i) => (
-          <Skeleton maxW="218px" h="218px" m="0" key={i} borderRadius="4">
-            <Card maxW="sm">
-              <CardBody w="218px" h="219px"></CardBody>
-            </Card>
-          </Skeleton>
-        ))}
-      </Flex>
-    );
+  if ((isLoading && !isFetchedAfterMount) || !isFetched) return <Skeleton />;
 
   if (data && data?.pages[0].data?.length == 0) {
     return (
@@ -104,22 +93,29 @@ export default function VodEpisodesList() {
   }
   return (
     <>
-      <SimpleGrid
-        spacing={4}
-        templateColumns="repeat(auto-fill, minmax(200px, 1fr))"
+      <Flex
+        gap="20px"
+        wrap="wrap"
         mx="20px"
+        justifyContent="space-around"
         // pb="50px"
       >
         {isSuccess &&
           data.pages.map((page, i) =>
             page?.data.data.map((item: any, i: Key | null | undefined) => (
               <Card
-                maxW="sm"
+                key={i}
+                minW={["100px", "130px", "170px"]}
+                maxW={["150px", "190px", "220px"]}
                 as={Link}
                 to={`/vod/${provider}/${show}/${item.id}`}
-                state={{ ...location.state, [show || "show"]: location.state?.[show || ""], [item.id || "epname"]: item.name }}
+                state={{
+                  ...location.state,
+                  [show || "show"]: location.state?.[show || ""],
+                  [item.id || "epname"]: item.name,
+                }}
               >
-                <CardBody>
+                <CardBody p="0">
                   <Image
                     src={
                       item.img ||
@@ -128,18 +124,33 @@ export default function VodEpisodesList() {
                     width="100%"
                     height={item.img ? "auto" : "90px"}
                     objectFit="cover"
-                    alt="Green double couch with wooden legs"
                     borderRadius="lg"
                   />
-                  <Stack mt="6" spacing="3">
+                  {/* <Stack spacing="3" p="2">
                     <Heading size="md">{item.name}</Heading>
                     <Text>{new Date(item.date as Date).toLocaleString()}</Text>
-                  </Stack>
+                  </Stack> */}
+                  <Flex
+                    // mt="6"
+                    flexDir="column"
+                    flex="1"
+                    alignItems="center"
+                    justifyContent="space-evenly"
+                    p="3"
+                  >
+                    <Heading size="1" textAlign="center" pb="2">
+                      {item.name}
+                    </Heading>
+                    <Text textAlign="center">
+                      {item.date &&
+                        new Date(item.date as Date).toLocaleString()}
+                    </Text>
+                  </Flex>
                 </CardBody>
               </Card>
             ))
           )}
-      </SimpleGrid>
+      </Flex>
       <Flex pb="5rem" pt="2rem" justifyContent="center">
         <Button
           onClick={() => fetchNextPage()}

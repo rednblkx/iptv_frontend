@@ -1,16 +1,15 @@
 import React from "react";
 import videojs from "video.js";
+import "@videojs/http-streaming";
+import "videojs-contrib-quality-levels"
 // @ts-ignore
-import eme from "videojs-contrib-eme";
+import "videojs-contrib-eme";
 import "video.js/dist/video-js.css";
 import Player from "video.js/dist/types/player";
 
-const registerPlugin = videojs.registerPlugin;
-
-registerPlugin("eme1", eme);
-
 interface EME extends Player {
-  eme1: Function;
+  qualityLevels(): unknown;
+  eme(): unknown;
 }
 
 export function VideoJS(props: any) {
@@ -26,17 +25,9 @@ export function VideoJS(props: any) {
 
       videoElement.classList.add("vjs-big-play-centered");
       videoRef.current.appendChild(videoElement);
-      // let options1;
-      // videojs.Vhs.xhr.beforeRequest = function (options, callback) {
-      //   /*
-      //    * Modifications to requests that will affect every player.
-      //    */
-      //   options1 = options;
-      //   return options;
-      // };
       const player = videojs(
         videoElement,
-        { autoplay: true, controls: true, responsive: true, fluid: true, nativeControlsForTouch: true },
+        { autoplay: true, controls: true, responsive: true, fluid: true, nativeControlsForTouch: true, liveui: true },
         () => {
           videojs.log("player is ready");
           onReady && onReady(player);
@@ -44,12 +35,15 @@ export function VideoJS(props: any) {
       ) as EME;
   
       playerRef.current = player;
-      player.eme1();
-
+      player.eme();
+      player.qualityLevels();
+      
       player.src(options);
     } else {
       const player = playerRef.current;
-      player.eme1();
+      player.eme();
+      player.qualityLevels();
+      
       player.autoplay(options.autoplay);
       player.src(options.sources);
     }

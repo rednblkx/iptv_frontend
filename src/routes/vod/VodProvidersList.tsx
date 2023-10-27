@@ -6,31 +6,22 @@ import {
   Heading,
   Image,
   SimpleGrid,
-  Skeleton,
 } from "@chakra-ui/react";
 import { Key } from "react";
 import { useQuery } from "react-query";
 import { Link, useLocation } from "react-router-dom";
 import getProviders from "../../apis/GetProviders";
+import Skeleton from "../../components/Skeleton";
 
 export default function ProvidersList() {
-  const { data, status, isFetched, isFetchedAfterMount, isLoading } = useQuery("getVodProviders", getProviders, {
+  const { data, status, isFetched, isFetchedAfterMount, isLoading, isFetching,  } = useQuery("getVodProviders", getProviders, {
     refetchOnWindowFocus: false,
+    staleTime: 43200000
   });
   const location = useLocation();
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
-  return (
-    <Flex wrap="wrap" justify="center" gap="4">
-      {Array.from({ length: 8 }, (_: any, i: number) => i + 1).map((_, i) => (
-        <Skeleton maxW="218px" h="218px" m="0" key={i} borderRadius="4">
-          <Card maxW="sm">
-            <CardBody w="218px" h="219px"></CardBody>
-          </Card>
-        </Skeleton>
-      ))}
-    </Flex>
-  );
+  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+    return (<Skeleton/>);
 
   if (status === "error") {
     return (

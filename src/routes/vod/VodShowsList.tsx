@@ -1,6 +1,5 @@
 import { SearchIcon } from "@chakra-ui/icons";
 import {
-  AbsoluteCenter,
   Alert,
   AlertDescription,
   AlertIcon,
@@ -12,24 +11,21 @@ import {
   Center,
   Flex,
   Heading,
-  HStack,
   Image,
   Input,
   InputGroup,
   InputLeftElement,
-  SimpleGrid,
-  Skeleton,
-  Stack,
   Text,
-  VStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Key } from "react";
 import { useInfiniteQuery, useQuery } from "react-query";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLoaderData, useLocation, useParams } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 import getVodShows from "../../apis/GetVodShows";
 import searchShow from "../../apis/SearchShow";
+import Skeleton from "../../components/Skeleton";
 
 export default function VodShowsList() {
   let { provider } = useParams();
@@ -47,7 +43,7 @@ export default function VodShowsList() {
     isFetched,
     isFetchedAfterMount,
   } = useInfiniteQuery({
-    queryKey: "getShowsList",
+    queryKey: `getShowsList/${provider}`,
     queryFn: async ({ pageParam }) => getVodShows(provider || null, pageParam),
     getNextPageParam: (lastPage, pages) => {
       return lastPage.data.pagination.current_page !=
@@ -56,8 +52,20 @@ export default function VodShowsList() {
         : null;
     },
     refetchOnWindowFocus: false,
+    staleTime: 600000,
   });
   const [value, setValue] = React.useState("");
+  const [searchEnabled, setSearch] = useState(false);
+  const options = useLoaderData() as {
+    data: { searchEnabled: boolean };
+  };
+
+  useEffect(() => {
+    setSearch(options.data.searchEnabled);
+  }, []);
+
+  const textColorMode = useColorModeValue("black", "white");
+
   const handleChange = (event: {
     target: { value: React.SetStateAction<string> };
   }) => setValue(event.target.value);
@@ -70,7 +78,11 @@ export default function VodShowsList() {
   } = useQuery(
     `searchShow/${finalValue}`,
     () => searchShow(provider || null, value),
-    { enabled: Boolean(finalValue) }
+    {
+      enabled: Boolean(finalValue),
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }
   );
 
   const location = useLocation();
@@ -96,18 +108,7 @@ export default function VodShowsList() {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
-    return (
-      <Flex wrap="wrap" justify="center" gap="4">
-        {Array.from({ length: 8 }, (_: any, i: number) => i + 1).map((_, i) => (
-          <Skeleton maxW="218px" h="218px" m="0" key={i} borderRadius="4">
-            <Card maxW="sm">
-              <CardBody w="218px" h="219px"></CardBody>
-            </Card>
-          </Skeleton>
-        ))}
-      </Flex>
-    );
+  if ((isLoading && !isFetchedAfterMount) || !isFetched) return <Skeleton />;
 
   if (data && data?.pages[0]?.data?.length == 0) {
     return (
@@ -125,53 +126,88 @@ export default function VodShowsList() {
   }
   return (
     <>
-      <Box marginBottom="1.5rem">
-        <Center>
-          <InputGroup maxWidth="50%">
+      {searchEnabled && (
+        <Flex marginBottom="1.5rem" justifyContent="center" px="5">
+          <InputGroup>
             <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
+              <SearchIcon />
             </InputLeftElement>
             <Input
               value={value}
               onChange={handleChange}
               type="search"
               placeholder="Search a show"
+              _placeholder={{ color: "inherit" }}
             />
           </InputGroup>
-        </Center>
-      </Box>
-      <SimpleGrid
-        spacing={[2, 4]}
-        minChildWidth={["120px", "200px", "230px"]}
+        </Flex>
+      )}
+      <Flex
+        gap="20px"
+        wrap={["nowrap", "wrap"]}
+        flexDirection={["column", "row"]}
+        justifyContent="space-around"
+        // minW={["120px", "200px", "230px"]}
         mx="20px"
-        alignItems="start"
+        // alignItems="start"
         // pb="50px"
       >
-        {isSuccess && !Boolean(finalValue)
+        {isSuccess && !finalValue
           ? data.pages.map((page, i) =>
               page.data.data.map((item: any, i: Key | null | undefined) => (
                 <Card
-                  maxW="sm"
+                  minW={["unset", "130px", "230px"]}
+                  maxW={["unset", "190px", "230px"]}
+                  borderRadius="md"
                   key={i}
                   as={Link}
                   to={`/vod/${provider}/${item.id}`}
                   state={{ ...location.state, [item.id]: item.name }}
                 >
-                  <CardBody>
+                  <CardBody
+                    display="flex"
+                    flexDir={["row", "column"]}
+                    p="0"
+                    position={["relative", "inherit"]}
+                  >
                     <Image
                       src={
                         item.img ||
                         "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
                       }
-                      width="100%"
-                      height={item.img ? "auto" : "90px"}
+                      // width="100%"
+                      // height={item.img ? "auto" : "90px"}
                       objectFit="cover"
                       alt={item.name}
-                      borderRadius="lg"
+                      borderRadius="md"
+                      borderBottomRadius={["md", "0px"]}
+                      // flex={["1", "auto"]}
+                      position={["relative", "inherit"]}
+                      maxH="100px"
+                      w="100%"
                     />
-                    <Flex mt="6" flexDir="column">
-                      <Heading size="md">{item.name}</Heading>
-                      <Text>
+                    <Flex
+                      // mt="6"
+                      flexDir="column"
+                      flex={["2", "auto"]}
+                      alignItems="center"
+                      justifyContent="space-evenly"
+                      p="3"
+                      pos={["absolute", "inherit"]}
+                      w="100%"
+                      h="100%"
+                      backgroundColor="#b0b0b050"
+                      borderRadius="md"
+                      borderTopRadius={["md", "0px"]}
+                    >
+                      <Heading
+                        size="md"
+                        textAlign="center"
+                        color={["black", textColorMode]}
+                      >
+                        {item.name}
+                      </Heading>
+                      <Text textAlign="center" color={["black", textColorMode]}>
                         {item.date &&
                           new Date(item.date as Date).toLocaleString()}
                       </Text>
@@ -186,27 +222,58 @@ export default function VodShowsList() {
                 i: React.Key | null | undefined
               ) => (
                 <Card
-                  maxW="sm"
+                  minW={["unset", "130px", "230px"]}
+                  maxW={["unset", "190px", "230px"]}
+                  borderRadius="md"
                   key={i}
                   as={Link}
                   to={`/vod/${provider}/${item.id}`}
                   state={{ ...location.state, [item.id]: item.name }}
                 >
-                  <CardBody>
+                  <CardBody
+                    display="flex"
+                    flexDir={["row", "column"]}
+                    p="0"
+                    position={["relative", "inherit"]}
+                  >
                     <Image
                       src={
                         item.img ||
                         "https://www.shutterstock.com/image-vector/picture-vector-icon-no-image-600w-1350441335.jpg"
                       }
-                      width="100%"
-                      height={item.img ? "auto" : "90px"}
+                      // width="100%"
+                      // height={item.img ? "auto" : "90px"}
                       objectFit="cover"
                       alt={item.name}
-                      borderRadius="lg"
+                      borderRadius="md"
+                      borderBottomRadius={["md", "0px"]}
+                      // flex={["1", "auto"]}
+                      position={["relative", "inherit"]}
+                      maxH="100px"
+                      w="100%"
                     />
-                    <Flex mt="6" flexDir="column">
-                      <Heading size="md">{item.name}</Heading>
-                      <Text>
+                    <Flex
+                      // mt="6"
+                      flexDir="column"
+                      flex={["2", "auto"]}
+                      alignItems="center"
+                      justifyContent="space-evenly"
+                      p="3"
+                      pos={["absolute", "inherit"]}
+                      w="100%"
+                      h="100%"
+                      backgroundColor="#b0b0b040"
+                      borderRadius="md"
+                      borderTopRadius={["md", "0px"]}
+                    >
+                      <Heading
+                        size="md"
+                        textAlign="center"
+                        color={["black", textColorMode]}
+                      >
+                        {item.name}
+                      </Heading>
+                      <Text textAlign="center" color={["black", textColorMode]}>
                         {item.date &&
                           new Date(item.date as Date).toLocaleString()}
                       </Text>
@@ -215,16 +282,18 @@ export default function VodShowsList() {
                 </Card>
               )
             )}
-      </SimpleGrid>
+      </Flex>
       <Flex pb="5rem" pt="2rem" justifyContent="center">
         <Button
           onClick={() => fetchNextPage()}
-          isDisabled={!hasNextPage || isFetchingNextPage}
+          isDisabled={
+            !hasNextPage || isFetchingNextPage || dataSearch?.data.data
+          }
           isLoading={isFetchingNextPage}
         >
           {isFetchingNextPage
             ? "Loading more..."
-            : hasNextPage
+            : hasNextPage && !dataSearch?.data.data
             ? "Load More"
             : "Nothing more to load"}
         </Button>

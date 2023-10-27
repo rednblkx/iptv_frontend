@@ -9,18 +9,18 @@ import {
   Flex,
   Heading,
   Image,
-  SimpleGrid,
-  Skeleton,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { Key } from "react";
 import { useQuery } from "react-query";
 import { Link, useLocation, useParams } from "react-router-dom";
 import getChannels from "../../apis/GetChannels";
+import Skeleton from "../../components/Skeleton";
 
 export default function ProviderChannels() {
   let { provider } = useParams();
   let location = useLocation();
+  const cardHover = useColorModeValue("blackAlpha.300", "whiteAlpha.300");
   const {
     data,
     status,
@@ -31,8 +31,9 @@ export default function ProviderChannels() {
     isFetched,
     isFetchedAfterMount,
     isLoading,
-  } = useQuery("getChannels", async () => getChannels(provider || null), {
+  } = useQuery(`getChannels/${provider}`, async () => getChannels(provider || null), {
     refetchOnWindowFocus: false,
+    staleTime: 14400000
   });
 
   if (isError && !isFetching) {
@@ -56,18 +57,8 @@ export default function ProviderChannels() {
     );
   }
 
-  if ((isFetched && !isFetchedAfterMount) || isLoading)
-    return (
-      <Flex wrap="wrap" justify="center" gap="4">
-        {Array.from({ length: 8 }, (_: any, i: number) => i + 1).map((_, i) => (
-          <Skeleton maxW="218px" h="218px" m="0" key={i} borderRadius="4">
-            <Card maxW="sm">
-              <CardBody w="218px" h="219px"></CardBody>
-            </Card>
-          </Skeleton>
-        ))}
-      </Flex>
-    );
+  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+    return (<Skeleton/>);
 
   if (Object.keys(data.data).length === 0 || data?.data?.length == 0) {
     return (
@@ -87,9 +78,8 @@ export default function ProviderChannels() {
       </>
     );
   }
-  const cardHover = useColorModeValue("blackAlpha.300", "whiteAlpha.300");
   return (
-    <SimpleGrid minChildWidth={["150px", "180px"]} spacing="20px" mx="20px" pb="6">
+    <Flex gap="20px" mx="20px" pb="6" wrap={"wrap"} justifyContent="space-around">
       {isSuccess &&
         !isFetching &&
         Object.keys(data?.data)?.map((item: any, i: Key | null | undefined) => (
@@ -98,8 +88,8 @@ export default function ProviderChannels() {
             as={Link}
             to={`/live/${provider}/${item}`}
             state={{ ...location.state, [item]: data.data[item].name }}
-            // minW="200px"
-            maxW="220px"
+            minW={["150px", "160px"]}
+            maxW={["140px"]}
             _hover={{ bg: cardHover }}
           >
             <CardBody
@@ -118,12 +108,12 @@ export default function ProviderChannels() {
                 alt={data.data[item].name}
                 borderRadius="lg"
               />
-              <Heading size="md" pt="2" alignSelf="center">
+              <Heading size="md" pt="2" alignSelf="center" maxWidth="100%">
                 {data.data[item].name}
               </Heading>
             </CardBody>
           </Card>
         ))}
-    </SimpleGrid>
+    </Flex>
   );
 }
