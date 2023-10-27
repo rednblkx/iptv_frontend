@@ -2,15 +2,17 @@ html,body {
   margin: 0;
   padding: 0;
   height: auto;
+  width: 100%;
   --toolbar-size: 60px;
-  /* background-color: #332f2f; */
 }
 /* body {
   display: flex;
   align-items: stretch;
 } */
 #root {
-  height: inherit;
+  height: 100%;
+  width: 100%;
+  /* position: fixed; */
   /* background-color: #332f2f;/ */
 }
 * {

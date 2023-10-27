@@ -13,7 +13,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Box pos="fixed" w="100%" h="100%" backgroundColor={bgColorMode} filter="blur(100px)" zIndex="-1"/>
-      <Flex flexDir="column" h="inherit">
+      <Flex flexDir="column" h="100dvh">
         <Toolbar />
         {location.pathname != "/" && (
           <Flex align="center" ml="5" mb="4" mt="4">
