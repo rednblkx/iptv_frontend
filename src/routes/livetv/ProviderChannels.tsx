@@ -12,14 +12,16 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { Key } from "react";
-import { useQuery } from "react-query";
-import { Link, useLocation, useParams } from "react-router-dom";
-import getChannels from "../../apis/GetChannels";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useLoaderData, useLocation, useParams } from "react-router-dom";
+import { getChannelsQuery } from "../../apis/GetChannels";
 import Skeleton from "../../components/Skeleton";
+import { LoaderParams } from "../../apis/loader";
 
 export default function ProviderChannels() {
   let { provider } = useParams();
   let location = useLocation();
+  let { channels } = useLoaderData() as LoaderParams;
   const cardHover = useColorModeValue("blackAlpha.300", "whiteAlpha.300");
   const {
     data,
@@ -31,10 +33,7 @@ export default function ProviderChannels() {
     isFetched,
     isFetchedAfterMount,
     isLoading,
-  } = useQuery(`getChannels/${provider}`, async () => getChannels(provider || null), {
-    refetchOnWindowFocus: false,
-    staleTime: 14400000
-  });
+  } = useQuery({...getChannelsQuery(provider || null), initialData: channels});
 
   if (isError && !isFetching) {
     return (

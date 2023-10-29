@@ -11,18 +11,19 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import React from "react";
-import { useQuery } from "react-query";
-import { useLocation, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { LoaderFunctionArgs, useLoaderData, useLocation, useParams } from "react-router-dom";
 import videojs from "video.js";
-import getChannelStream from "../../apis/GetChannelStream";
+import {
+  getChannelStreamQuery,
+} from "../../apis/GetChannelStream";
 import VideoJS from "../../components/Player.jsx";
-// @ts-ignore
-// import 'videojs-contrib-eme';
 
-export default function ChannelStream(props) {
+export default function ChannelStream() {
   const location = useLocation();
 
   let { provider, channel } = useParams();
+  const { channelData } = useLoaderData() as {params: LoaderFunctionArgs['params'], channelData: {[x: string]: any}};
   const {
     data,
     status,
@@ -33,11 +34,10 @@ export default function ChannelStream(props) {
     isFetched,
     isFetchedAfterMount,
     isLoading,
-  } = useQuery(
-    `getStream/${provider}/${channel}`,
-    async () => getChannelStream(provider || null, channel || null),
-    { retry: 2, refetchOnMount: true, refetchOnWindowFocus: false, staleTime: 7200000 }
-  );
+  } = useQuery({
+    ...getChannelStreamQuery(provider || null, channel || null),
+    initialData: channelData,
+  });  
 
   const playerRef = React.useRef(null);
   const videoJsOptions = {
@@ -94,11 +94,11 @@ export default function ChannelStream(props) {
     );
   }
 
-  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+  if (isLoading && !isFetchedAfterMount)
     return (
-        <Box p="6" bg="white" w="100%">
-          <Skeleton height="260px" borderRadius="4"/>
-        </Box>
+      <Box p="6" bg="white" w="100%">
+        <Skeleton height="260px" borderRadius="4" />
+      </Box>
     );
 
   return (

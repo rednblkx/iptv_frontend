@@ -1,26 +1,22 @@
 import {
   Box,
   Card,
-  CardBody,
-  Flex,
-  Heading,
+  CardBody, Heading,
   Image,
-  SimpleGrid,
+  SimpleGrid
 } from "@chakra-ui/react";
 import { Key } from "react";
-import { useQuery } from "react-query";
-import { Link, useLocation } from "react-router-dom";
-import getProviders from "../../apis/GetProviders";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useLoaderData, useLocation } from "react-router-dom";
+import { getProvidersQuery } from "../../apis/GetProviders";
 import Skeleton from "../../components/Skeleton";
 
 export default function ProvidersList() {
-  const { data, status, isFetched, isFetchedAfterMount, isLoading, isFetching,  } = useQuery("getVodProviders", getProviders, {
-    refetchOnWindowFocus: false,
-    staleTime: 43200000
-  });
+  const loader = useLoaderData();
+  const { data, status, isFetched, isFetchedAfterMount, isLoading, isFetching,  } = useQuery({...getProvidersQuery(), initialData: loader});
   const location = useLocation();
 
-  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+  if ((isLoading && !isFetchedAfterMount))
     return (<Skeleton/>);
 
   if (status === "error") {

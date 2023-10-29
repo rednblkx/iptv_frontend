@@ -1,5 +1,5 @@
 import { ArrowForwardIcon } from "@chakra-ui/icons";
-import { Box, Card, CardBody, Flex, Text, Wrap, WrapItem } from "@chakra-ui/react";
+import { Card, CardBody, Flex, Text } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
 export default function Index() {

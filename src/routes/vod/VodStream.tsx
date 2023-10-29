@@ -12,16 +12,19 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import React from "react";
-import { useQuery } from "react-query";
-import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useLoaderData, useParams } from "react-router-dom";
 import videojs from "video.js";
-import getVodStream from "../../apis/GetVodStream";
+import { getVodStreamQuery, vodStreamLoader } from "../../apis/GetVodStream";
 import VideoJS from "../../components/Player";
 
 export default function VodStream() {
   const playerRef = React.useRef(null);
 
   let { provider, show, epid } = useParams();
+  let { ep } = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof vodStreamLoader>>
+  >;
   const {
     data,
     status,
@@ -32,18 +35,9 @@ export default function VodStream() {
     isFetched,
     isFetchedAfterMount,
     isLoading,
-  } = useQuery(
-    `getEpisodeStream/${provider}/${show}/${epid}`,
-    async () => getVodStream(provider || null, show || null, epid || null),
-    {
-      retry: 2,
-      refetchOnMount: true,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      staleTime: 7200000
-    }
-  );
+  } = useQuery({...getVodStreamQuery(provider, show, epid), initialData: ep});
 
+  // const isSuccess = true
 
   const videoJsOptions = {
     src: data?.data?.stream.includes(".m3u8")
@@ -53,7 +47,7 @@ export default function VodStream() {
       "com.widevine.alpha": `${import.meta.env.VITE_API_BASE_URL}/cors/${
         data?.data?.drm?.url
       }`,
-    }
+    },
   };
 
   const handlePlayerReady = (player: any) => {
@@ -90,11 +84,11 @@ export default function VodStream() {
     );
   }
 
-  if ((isLoading && !isFetchedAfterMount) || !isFetched)
+  if ((isLoading && !isFetchedAfterMount))
     return (
-        <Box p="6" bg="white" w="100%">
-          <Skeleton height="260px" borderRadius="4"/>
-        </Box>
+      <Box p="6" bg="white" w="100%">
+        <Skeleton height="260px" borderRadius="4" />
+      </Box>
     );
 
   if (data && data?.data?.length == 0) {
@@ -107,9 +101,7 @@ export default function VodStream() {
         justifyContent="center"
         alignItems="center"
       >
-        <Heading color="rgba(255,255,255, 0.7)">
-          No Episodes available!
-        </Heading>
+        <Heading color="rgba(255,255,255, 0.7)">No Episodes available!</Heading>
       </Box>
     );
   }
@@ -125,7 +117,9 @@ export default function VodStream() {
       {isSuccess && data?.data?.stream && (
         <Card mx="2">
           <CardBody>
-            <Link isExternal href={data?.data.stream}>{data?.data.stream}</Link>
+            <Link isExternal href={data?.data.stream}>
+              {data?.data.stream}
+            </Link>
           </CardBody>
         </Card>
       )}

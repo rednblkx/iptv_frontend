@@ -7,28 +7,33 @@ import {
   Box,
   Button,
   Card,
-  CardBody,
-  Center,
-  Flex,
+  CardBody, Flex,
   Heading,
   Image,
   Input,
   InputGroup,
   InputLeftElement,
   Text,
-  useColorModeValue,
+  useColorModeValue
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { Key } from "react";
-import { useInfiniteQuery, useQuery } from "react-query";
-import { Link, useLoaderData, useLocation, useParams } from "react-router-dom";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  Link, useLoaderData,
+  useLocation, useParams
+} from "react-router-dom";
 import { useDebounce } from "use-debounce";
-import getVodShows from "../../apis/GetVodShows";
+import {
+  getShowsQuery
+} from "../../apis/GetVodShows";
 import searchShow from "../../apis/SearchShow";
 import Skeleton from "../../components/Skeleton";
 
 export default function VodShowsList() {
-  let { provider } = useParams();
+  let { provider } = useParams() as { provider: string };
+  let { options } = useLoaderData() as {shows: Record<string, unknown>, options: {data: {searchEnabled: boolean}}}
+  
   const {
     data,
     error,
@@ -42,29 +47,18 @@ export default function VodShowsList() {
     isLoading,
     isFetched,
     isFetchedAfterMount,
-  } = useInfiniteQuery({
-    queryKey: `getShowsList/${provider}`,
-    queryFn: async ({ pageParam }) => getVodShows(provider || null, pageParam),
-    getNextPageParam: (lastPage, pages) => {
-      return lastPage.data.pagination.current_page !=
-        lastPage.data.pagination.total_pages
-        ? lastPage.data.pagination.current_page + 1
-        : null;
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 600000,
-  });
+  } = useInfiniteQuery({...getShowsQuery(provider)});
   const [value, setValue] = React.useState("");
   const [searchEnabled, setSearch] = useState(false);
-  const options = useLoaderData() as {
-    data: { searchEnabled: boolean };
-  };
 
   useEffect(() => {
-    setSearch(options.data.searchEnabled);
+    setSearch(options?.data?.searchEnabled);
   }, []);
 
-  const brightnessMode = useColorModeValue("brightness(100%)", "brightness(80%)");
+  const brightnessMode = useColorModeValue(
+    "brightness(100%)",
+    "brightness(80%)"
+  );
 
   const handleChange = (event: {
     target: { value: React.SetStateAction<string> };
@@ -75,20 +69,18 @@ export default function VodShowsList() {
     data: dataSearch,
     isLoading: isSearchLoading,
     isFetched: isSearchFetched,
-  } = useQuery(
-    `searchShow/${finalValue}`,
-    () => searchShow(provider || null, value),
-    {
-      enabled: Boolean(finalValue),
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-      staleTime: 600000
-    }
-  );
+  } = useQuery({
+    queryKey: [`searchShow/${finalValue}`],
+    queryFn: () => searchShow(provider || null, value),
+    enabled: Boolean(finalValue),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 600000,
+  });
 
   const location = useLocation();
 
-  if (isError && !isFetching) {
+  if (isError) {
     return (
       <>
         <Box
@@ -109,9 +101,10 @@ export default function VodShowsList() {
     );
   }
 
-  if ((isLoading && !isFetchedAfterMount) || !isFetched) return <Skeleton />;
+  if (isLoading|| isSearchLoading)
+    return (<Skeleton/>);
 
-  if (data && data?.pages[0]?.data?.length == 0) {
+  if (data && data?.pages?.[0]?.data?.length == 0) {
     return (
       <Box
         w="100%"
@@ -154,7 +147,7 @@ export default function VodShowsList() {
         // pb="50px"
       >
         {isSuccess && !finalValue
-          ? data.pages.map((page, i) =>
+          ? data.pages?.map((page: { data: { data: { map: (arg0: (item: any, i: React.Key | null | undefined) => JSX.Element) => { page: string; }; }; }; }, i: any) =>
               page.data.data.map((item: any, i: Key | null | undefined) => (
                 <Card
                   minW={["unset", "130px", "230px"]}
@@ -202,11 +195,7 @@ export default function VodShowsList() {
                       borderRadius="md"
                       borderTopRadius={["md", "0px"]}
                     >
-                      <Heading
-                        size="md"
-                        textAlign="center"
-                        color="white"
-                      >
+                      <Heading size="md" textAlign="center" color="white">
                         {item.name}
                       </Heading>
                       <Text textAlign="center" color="white">
@@ -269,11 +258,7 @@ export default function VodShowsList() {
                       borderRadius="md"
                       borderTopRadius={["md", "0px"]}
                     >
-                      <Heading
-                        size="md"
-                        textAlign="center"
-                        color="white"
-                      >
+                      <Heading size="md" textAlign="center" color="white">
                         {item.name}
                       </Heading>
                       <Text textAlign="center" color="white">

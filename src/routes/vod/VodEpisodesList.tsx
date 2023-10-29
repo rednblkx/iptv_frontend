@@ -9,19 +9,18 @@ import {
   CardBody,
   Flex,
   Heading,
-  Image,
-  Stack,
-  Text,
+  Image, Text
 } from "@chakra-ui/react";
 import { Key } from "react";
-import { useInfiniteQuery } from "react-query";
-import { Link, useLocation, useParams } from "react-router-dom";
-import getEpisodesList from "../../apis/GetEpisodesList";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { Link, useLocation, useParams, useRouteLoaderData } from "react-router-dom";
+import { getEpisodesQuery } from "../../apis/GetEpisodesList";
 import Skeleton from "../../components/Skeleton";
 
 export default function VodEpisodesList() {
   let location = useLocation();
   let { provider, show } = useParams();
+  let { show: showData } = useRouteLoaderData("vodShows") as { show: Record<string, unknown> };
   const {
     data,
     error,
@@ -36,21 +35,14 @@ export default function VodEpisodesList() {
     isFetched,
     isLoading,
   } = useInfiniteQuery({
-    queryKey: `getEpisodesList/${provider}/${show}`,
-    queryFn: async ({ pageParam }) =>
-      getEpisodesList(provider || null, show || null, pageParam),
-
-    getNextPageParam: (lastPage, pages) => {
-      return lastPage.data.pagination.current_page !=
-        lastPage.data.pagination.total_pages
-        ? lastPage.data.pagination.current_page + 1
-        : null;
+    ...getEpisodesQuery(provider, show),
+    initialData: {
+      pages: [showData],
+      pageParams: ["1"],
     },
-    refetchOnWindowFocus: false,
-    staleTime: 600000,
   });
 
-  if (isError && !isFetching) {
+  if (isError) {
     return (
       <>
         <Box
@@ -71,7 +63,8 @@ export default function VodEpisodesList() {
     );
   }
 
-  if ((isLoading && !isFetchedAfterMount) || !isFetched) return <Skeleton />;
+  if ((isLoading && !isFetchedAfterMount))
+    return (<Skeleton/>);
 
   if (data && data?.pages[0].data?.length == 0) {
     return (
@@ -101,7 +94,7 @@ export default function VodEpisodesList() {
         // pb="50px"
       >
         {isSuccess &&
-          data.pages.map((page, i) =>
+          data.pages.map((page: { data: { data: any[] } }, i: any) =>
             page?.data.data.map((item: any, i: Key | null | undefined) => (
               <Card
                 key={i}
