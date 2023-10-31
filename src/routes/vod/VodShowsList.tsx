@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import { Key } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
-  Link, useLoaderData,
+  Link, useActionData, useLoaderData,
   useLocation, useParams
 } from "react-router-dom";
 import { useDebounce } from "use-debounce";
@@ -49,32 +49,28 @@ export default function VodShowsList() {
     isFetchedAfterMount,
   } = useInfiniteQuery({...getShowsQuery(provider)});
   const [value, setValue] = React.useState("");
-  const [searchEnabled, setSearch] = useState(false);
+  const actionData = useActionData() as {query: string};
 
   useEffect(() => {
-    setSearch(options?.data?.searchEnabled);
-  }, [options]);
-
+    if (actionData?.query != undefined) {
+      setValue(actionData?.query || "")
+    }
+  }, [actionData])
+  
   const brightnessMode = useColorModeValue(
     "brightness(100%)",
     "brightness(80%)"
   );
 
-  const handleChange = (event: {
-    target: { value: React.SetStateAction<string> };
-  }) => setValue(event.target.value);
-  const [finalValue] = useDebounce(value, 1500);
-
   const {
     data: dataSearch,
     isLoading: isSearchLoading,
-    isFetched: isSearchFetched,
   } = useQuery({
-    queryKey: [`searchShow/${finalValue}`],
+    queryKey: [`searchShow/${value}`],
     queryFn: () => searchShow(provider || null, value),
-    enabled: Boolean(finalValue),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    enabled: Boolean(value),
     staleTime: 600000,
   });
 
@@ -120,22 +116,6 @@ export default function VodShowsList() {
   }
   return (
     <>
-      {searchEnabled && (
-        <Flex marginBottom="1.5rem" justifyContent="center" px="5">
-          <InputGroup>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon />
-            </InputLeftElement>
-            <Input
-              value={value}
-              onChange={handleChange}
-              type="search"
-              placeholder="Search a show"
-              _placeholder={{ color: "inherit" }}
-            />
-          </InputGroup>
-        </Flex>
-      )}
       <Flex
         gap="20px"
         wrap={["nowrap", "wrap"]}
@@ -146,7 +126,7 @@ export default function VodShowsList() {
         // alignItems="start"
         // pb="50px"
       >
-        {isSuccess && !finalValue
+        {isSuccess && !value
           ? data.pages?.map((page: { data: { data: { map: (arg0: (item: any, i: React.Key | null | undefined) => JSX.Element) => { page: string; }; }; }; }, i: any) =>
               page.data.data.map((item: any, i: Key | null | undefined) => (
                 <Card

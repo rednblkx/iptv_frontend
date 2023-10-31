@@ -1,21 +1,34 @@
-import { ArrowBackIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, CloseIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Button,
-  Flex, Progress,
+  Flex,
+  IconButton,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
+  Progress,
   Spacer,
-  Text
+  Text,
 } from "@chakra-ui/react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useEffect, useState } from "react";
 import {
+  Form,
   Link,
   Outlet,
   Params,
   useLocation,
   useMatches,
-  useNavigation
+  useNavigation,
+  useParams,
+  useRouteLoaderData,
+  useSubmit,
 } from "react-router-dom";
+import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { LoaderParams } from "./apis/loader";
+import searchShow from "./apis/SearchShow";
 import { Background } from "./components/Background";
 import Toolbar from "./components/Toolbar";
 
@@ -47,6 +60,43 @@ function App() {
   const location = useLocation();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
+  const params = useParams();
+  const [value, setValue] = useState("");
+  let submit = useSubmit();
+
+  const routeLoader = useRouteLoaderData("vodShows");
+
+  const [searchEnabled, setSearch] = useState(false);
+  useEffect(() => {
+    setSearch(routeLoader?.options?.data.searchEnabled);
+  }, [routeLoader]);
+  const debounced = useDebouncedCallback((val) => {
+    submit(
+      { query: val },
+      {
+        method: "POST",
+        action: `/vod/${params?.provider}`,
+        encType: "application/json",
+      }
+    );
+  }, 1500);
+
+  const handleChange = (event: {
+    target: { value: React.SetStateAction<string> };
+  }) => {
+    setValue(event.target.value);
+    debounced(event.target.value);
+  };
+
+  const submitData = (val: string) =>
+    submit(
+      { query: val },
+      {
+        method: "POST",
+        action: `/vod/${params?.provider}`,
+        encType: "application/json",
+      }
+    );
 
   // const { data, refetch } = useQuery(
   //   { ...query[0] || getProvidersQuery(), enabled: Boolean(query.length > 0) },
@@ -54,15 +104,16 @@ function App() {
   // );
   return (
     <>
-      <Background/>
+      <Background />
       <Flex flexDir="column" h="100dvh">
         <Toolbar />
-        {navigation.state == "loading" && (
+        {(navigation.state == "loading" ||
+          navigation.state == "submitting") && (
           <Progress size="xs" isIndeterminate />
         )}
         {location.pathname != "/" && (
           <Flex align="center" mx="5" mb="4" mt="4">
-            <Button w="30px" as={Link} to=".." relative="path">
+            <Button w="30px" as={Link} to={".."} relative="path">
               <ArrowBackIcon color="white.500" />
             </Button>
             <Text ml="2" fontSize="lg">
@@ -72,7 +123,32 @@ function App() {
                 ]?.name
               }
             </Text>
-            <Spacer />
+            <Spacer />{" "}
+            {searchEnabled && (
+              <Flex justifyContent="center">
+                <InputGroup>
+                  <InputLeftElement pointerEvents="none">
+                    <SearchIcon />
+                  </InputLeftElement>
+                  <Input
+                    value={value}
+                    onChange={handleChange}
+                    onKeyUp={(ev) => {
+                      if (ev.key == "Enter") {
+                        debounced.cancel();
+                        submitData(ev.currentTarget.value)
+                      }
+                    }}
+                    type="search"
+                    placeholder="Search a show"
+                    // _placeholder={{ color: "inherit" }}
+                  />
+                  <InputRightElement width="3rem">
+                    <IconButton aria-label="Clear field" variant={"ghost"} icon={<CloseIcon/>} h="1.75rem" size="sm" onClick={() => { setValue("");  submitData("")}}/>
+                  </InputRightElement>
+                </InputGroup>
+              </Flex>
+            )}
             {/* <IconButton aria-label="Refresh content" icon={<FaArrowsRotate/>} onClick={() => refetch()}>Refetch</IconButton> */}
           </Flex>
         )}

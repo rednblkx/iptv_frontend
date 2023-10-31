@@ -163,6 +163,10 @@ let router = createBrowserRouter([
             element: <Layout />,
             id: "vodProvider",
             loader: async ({ params }) => params,
+            action: async ({ params, request }) => {
+              let formData = await request.json();
+              return formData;
+            },
             handle: {
               crumb: (data: LoaderParams) => [
                 {
@@ -178,18 +182,20 @@ let router = createBrowserRouter([
               {
                 index: true,
                 element: <VodShowsList />,
+                id: "vodShows",
                 loader: async (data1) => {
                   let options = await ModInfoLoader(queryClient)(data1);
                   return { params: data1.params, options };
                 },
                 handle: {
                   query: (data: LoaderParams) => getShowsQuery(data.params.provider || null),
-                }
+                },
+
               },
               {
                 path: ":show",
                 element: <Layout />,
-                id: "vodShows",
+                id: "vodEpisodes",
                 loader: async (data) => {
                   let show = await episodesLoader(queryClient)(data);
                   return { params: data.params, show };

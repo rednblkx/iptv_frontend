@@ -20,7 +20,7 @@ import Skeleton from "../../components/Skeleton";
 export default function VodEpisodesList() {
   let location = useLocation();
   let { provider, show } = useParams();
-  let { show: showData } = useRouteLoaderData("vodShows") as { show: Record<string, unknown> };
+  let { show: showData } = useRouteLoaderData("vodEpisodes") as { show: Record<string, unknown> };
   const {
     data,
     error,
