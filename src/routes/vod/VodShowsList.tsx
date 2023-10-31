@@ -53,7 +53,7 @@ export default function VodShowsList() {
 
   useEffect(() => {
     setSearch(options?.data?.searchEnabled);
-  }, []);
+  }, [options]);
 
   const brightnessMode = useColorModeValue(
     "brightness(100%)",
@@ -63,7 +63,7 @@ export default function VodShowsList() {
   const handleChange = (event: {
     target: { value: React.SetStateAction<string> };
   }) => setValue(event.target.value);
-  const [finalValue] = useDebounce(value, 1000);
+  const [finalValue] = useDebounce(value, 1500);
 
   const {
     data: dataSearch,
