@@ -61,6 +61,20 @@ export default function VodStream() {
     player?.on("dispose", () => {
       videojs.log("player will dispose");
     });
+    player.tech().on("error", () => {
+      player.src({
+        src: `${
+          import.meta.env.VITE_API_BASE_URL
+        }/${provider}/vod/${show}/${epid}/index.m3u8?cf_bypass=1`,
+      });
+    })
+    player.tech().on("retryplaylist", () => {
+      player.src({
+        src: `${
+          import.meta.env.VITE_API_BASE_URL
+        }/${provider}/vod/${show}/${epid}/index.m3u8?cf_bypass=1`,
+      });
+    });
   };
 
   if (isError && !isFetching) {
