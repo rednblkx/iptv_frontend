@@ -64,7 +64,7 @@ function App() {
   const [value, setValue] = useState("");
   let submit = useSubmit();
 
-  const routeLoader = useRouteLoaderData("vodShows");
+  const routeLoader = useRouteLoaderData("vodShows") as LoaderParams;
 
   const [searchEnabled, setSearch] = useState(false);
   useEffect(() => {
