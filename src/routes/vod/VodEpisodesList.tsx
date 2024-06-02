@@ -11,15 +11,16 @@ import {
   Heading,
   Image, Text
 } from "@chakra-ui/react";
-import { Key } from "react";
+import { Key, useEffect } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Link, useLocation, useParams, useRouteLoaderData } from "react-router-dom";
+import { Link, useLocation, useParams, useRouteLoaderData, useSearchParams } from "react-router-dom";
 import { getEpisodesQuery } from "../../apis/GetEpisodesList";
 import Skeleton from "../../components/Skeleton";
 
 export default function VodEpisodesList() {
   let location = useLocation();
   let { provider, show } = useParams();
+  let [searchParams, setSearchParams] = useSearchParams();
   let { show: showData } = useRouteLoaderData("vodEpisodes") as { show: Record<string, unknown> };
   const {
     data,
@@ -34,18 +35,24 @@ export default function VodEpisodesList() {
     isFetchedAfterMount,
     isFetched,
     isLoading,
+    refetch
   } = useInfiniteQuery({
-    ...getEpisodesQuery(provider, show),
+    ...getEpisodesQuery(provider, show, Object.fromEntries(searchParams)),
     initialData: {
       pages: [showData],
       pageParams: ["1"],
     },
   });
-
+  useEffect(() => {
+    refetch();
+  }, [searchParams])
   if (isError) {
+    console.log(data);
+    console.log(error);
+    
     return (
       <>
-        <Box
+        {/* <Box
           w="100%"
           h="100%"
           display="flex"
@@ -58,7 +65,7 @@ export default function VodEpisodesList() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{(error as any)?.message}</AlertDescription>
           </Alert>
-        </Box>
+        </Box> */}
       </>
     );
   }
@@ -101,7 +108,7 @@ export default function VodEpisodesList() {
                 minW={["100px", "130px", "170px"]}
                 maxW={["150px", "190px", "220px"]}
                 as={Link}
-                to={`/vod/${provider}/${show}/${item.id}`}
+                to={item.link.includes("?") ? `/vod/${provider}/${show}${item.link.substr(item.link.indexOf("?"))}` : `/vod/${provider}/${show}/${item.id}`}
                 state={{
                   ...location.state,
                   [show || "show"]: location.state?.[show || ""],

@@ -113,7 +113,7 @@ function App() {
         )}
         {location.pathname != "/" && (
           <Flex align="center" mx="5" mb="4" mt="4">
-            <Button w="30px" as={Link} to={".."} relative="path">
+            <Button w="30px" onClick={() => {history.back()}}>
               <ArrowBackIcon color="white.500" />
             </Button>
             <Text ml="2" fontSize="lg">

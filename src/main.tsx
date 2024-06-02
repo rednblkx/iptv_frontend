@@ -188,7 +188,7 @@ let router = createBrowserRouter([
                   return { params: data1.params, options };
                 },
                 handle: {
-                  query: (data: LoaderParams) => getShowsQuery(data.params.provider || null),
+                  query: (data: LoaderParams) => getShowsQuery(data.params.provider || null, {}),
                 },
 
               },
@@ -214,7 +214,7 @@ let router = createBrowserRouter([
                     element: <VodEpisodesList />,
                     loader: ({ params }) => params,
                     handle: {
-                      query: (data: LoaderParams) => getShowsQuery(data.params.provider || null),
+                      query: (data: LoaderParams) => getShowsQuery(data.params.provider || null, {}),
                     }
                   },
                   {

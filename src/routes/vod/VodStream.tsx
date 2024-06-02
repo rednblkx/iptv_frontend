@@ -39,7 +39,7 @@ export default function VodStream() {
 
   // const isSuccess = true
 
-  const videoJsOptions = {
+  const videoJsOptions : {[k: string]: {[k: string] : string}} = {
     src: data?.data?.stream.includes(".m3u8")
       ? data?.data?.stream
       : `${import.meta.env.VITE_API_BASE_URL}/cors/${data?.data?.stream}`,
@@ -47,8 +47,12 @@ export default function VodStream() {
       "com.widevine.alpha": `${import.meta.env.VITE_API_BASE_URL}/cors/${
         data?.data?.drm?.url
       }`,
-    },
+    }
   };
+
+  if (data?.data?.drm?.headers) {
+    videoJsOptions["emeHeaders"] = data?.data?.drm?.headers;
+  }
 
   const handlePlayerReady = (player: any) => {
     playerRef.current = player;
@@ -78,9 +82,11 @@ export default function VodStream() {
   };
 
   if (isError && !isFetching) {
+    console.log(data);
+    console.log(error);
     return (
       <>
-        <Box
+        {/* <Box
           w="100%"
           h="100%"
           display="flex"
@@ -93,7 +99,7 @@ export default function VodStream() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{(error as any)?.message}</AlertDescription>
           </Alert>
-        </Box>
+        </Box> */}
       </>
     );
   }

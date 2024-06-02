@@ -21,7 +21,7 @@ import { Key } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   Link, useActionData, useLoaderData,
-  useLocation, useParams
+  useLocation, useParams, useSearchParams
 } from "react-router-dom";
 import { useDebounce } from "use-debounce";
 import {
@@ -32,6 +32,7 @@ import Skeleton from "../../components/Skeleton";
 
 export default function VodShowsList() {
   let { provider } = useParams() as { provider: string };
+  let [searchParams, setSearchParams] = useSearchParams();
   let { options } = useLoaderData() as {shows: Record<string, unknown>, options: {data: {searchEnabled: boolean}}}
   
   const {
@@ -47,10 +48,13 @@ export default function VodShowsList() {
     isLoading,
     isFetched,
     isFetchedAfterMount,
-  } = useInfiniteQuery({...getShowsQuery(provider)});
+    refetch
+  } = useInfiniteQuery({...getShowsQuery(provider, Object.fromEntries(searchParams))});
   const [value, setValue] = React.useState("");
   const actionData = useActionData() as {query: string};
-
+  useEffect(() => {
+    refetch();
+  }, [searchParams])
   useEffect(() => {
     if (actionData?.query != undefined) {
       setValue(actionData?.query || "")
@@ -77,9 +81,12 @@ export default function VodShowsList() {
   const location = useLocation();
 
   if (isError) {
+    console.log(data);
+    console.log(error);
+    
     return (
       <>
-        <Box
+        {/* <Box
           w="100%"
           h="100%"
           display="flex"
@@ -92,7 +99,7 @@ export default function VodShowsList() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{(error as any)?.message}</AlertDescription>
           </Alert>
-        </Box>
+        </Box> */}
       </>
     );
   }
@@ -135,7 +142,7 @@ export default function VodShowsList() {
                   borderRadius="md"
                   key={i}
                   as={Link}
-                  to={`/vod/${provider}/${item.id}`}
+                  to={item.link.includes("?") ? `/vod/${provider}${item.link.substr(item.link.indexOf("?"))}` : `/vod/${provider}/${item.id}`}
                   state={{ ...location.state, [item.id]: item.name }}
                 >
                   <CardBody
